@@ -25,13 +25,18 @@ private:
   /*
   * Coefficients
   */ 
-  double Kp_cte;
-  double Ki_cte;
-  double Kd_cte;
+  enum {
+  p_cte = 0,
+  i_cte,
+  d_cte,
+  p_se,
+  i_se,
+  d_se,
 
-  double Kp_se;
-  double Ki_se;
-  double Kd_se;
+  nK
+  };
+
+  double K[nK];
 
   /*
   * States
