@@ -9,11 +9,20 @@ Self-Driving Car Engineer Nanodegree Program
 
 Initial parameters of the steering angle controller were set using the PID coeffcients from PID Control lesson (0.2, 0.004, 3) and manually tuning (0.1, 0.002, 2.8).
 
-Then I used twiddle to optimize the parameters, which reduced the erro by about 80%. The twiddle optimized parameters (0.178125,0.0186016,2.55) overally drives smoother but is prone to oscillations (which settles quickly) at the start and at sharp bends.
+Then I used twiddle to optimize the parameters, which reduced the erro by about 80%. The twiddle optimized parameters (0.178125,0.0186016,2.55) overall drives smoother but are prone to oscillations (which settles quickly) at the start and at sharp bends.
 
 A second PID controller was used to keep the speed constant.
 
 ### Effects of PID Parameters
+
+To see how each parameter effects the dynamic response I varied each parameter one at atime starting from the optimal set of gains.
+
+|Gain|Increased Effect  | Decreased Effect |
+|---|---|---|
+| P  |Fast oscillations with increasing amplitude <br> The oscillations are unstable and the car goes off track. <br> Steering is too fast for the available damping to reduce osccilations | Slow oscillations with large amplitude. <br>Steering is not fast enough to repond to the changes in CTE |
+| I| The car goes off track quickly with a large value. <br> The steering over compensates for small errors.| Even with 0 gain the car drove smoothly <br> This is there to compensate for systematic bias and <br> it appears that there is none. i.e. errors oscillate around 0 <br> making the cumulative error small.  |
+|D   | Fast oscillations with small amplitude which grows quickly. <br> It seems the steering is too sluggish to start with heavy damping. <br>  |With decreased damping the car overshoots and goes off <br>track immediately.   |
+
 
 
 ### Twiddle Log
