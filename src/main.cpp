@@ -28,12 +28,16 @@ std::string hasData(std::string s) {
   return "";
 }
 
+
+bool twiddle = false;
+
 int main()
 {
   uWS::Hub h;
 
   // Initialize the pid variable.
-  PID pid(0.1, 0.002, 2.8, 0.1, 0.002, 2.8);
+  //PID pid(0.1, 0.002, 2.8, 0.1, 0.002, 2.8);
+  PID pid(0.178125, 0.0186016, 2.55, 0.1, 0.002, 2.8);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -56,9 +60,11 @@ int main()
           pid.control(cte, speed-30, angle, angle_control, throttle_control);
           
           // DEBUG
-          //std::cout << "cte: " << std::setw(8) << cte << " speed: " << std::setw(8) << speed 
-          //  << "   steer angle:" << std::setw(10) << angle << " [" << std::setw(10) << angle_control 
-          //  << "]   throttle: " << std::setw(10) << throttle << " [" << std::setw(10) << throttle_control << "]" << std::endl;
+          if (!twiddle) {
+            std::cout << "cte: " << std::setw(8) << cte << " speed: " << std::setw(8) << speed 
+              << "   steer angle:" << std::setw(10) << angle << " [" << std::setw(10) << angle_control 
+              << "]   throttle: " << std::setw(10) << throttle << " [" << std::setw(10) << throttle_control << "]" << std::endl;
+          }
 
           json msgJson;
           msgJson["steering_angle"] = angle_control;
@@ -67,7 +73,7 @@ int main()
           //std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 
-          if (pid.twiddle()) {
+          if (twiddle && pid.twiddle()) {
             std::string msg = "42[\"reset\",{}]";
             ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
           }
