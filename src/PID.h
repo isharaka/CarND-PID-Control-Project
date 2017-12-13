@@ -18,18 +18,27 @@ public:
   /*
   * Calculate control inputs given measurments
   */
-  void control(double cte, double se, double angle, double& steering_angle, double& throttle);
+  void control(
+    double cte,             // in   - cross track error
+    double se,              // in   - speed error
+    double angle,           // in   - current steering angle
+    double& steering_angle, // out  - steering angle command
+    double& throttle);      // out  - throttle command
 
-  bool twiddle();
+  /*
+  * Twiddle algorithm
+  */
+  bool twiddle();           // returns true if simulator needs to be reset
 
 private:
 
   void reset();
   void update_error(double cte);
 
-  /*
+ /*
   * Coefficients
-  */ 
+  */
+
   enum {
   p_cte = 0,
   i_cte,
@@ -40,25 +49,33 @@ private:
 
   nK
   };
-
-  enum {
-    n_settle_time = 150,
-    n_eval_time = 1350
-  };
-
+  
   double K[nK];
 
-  double dK[nK];
-  double _K[nK];
+  /*
+  * Twiddle coeffcients
+  */
 
   /*
-  * States
+  * Controller States
   */
   double integral_cte;
   double integral_se;
 
   double _cte;
   double _se;
+
+  /*
+  * Twiddle variables
+  */
+
+  enum {
+    n_settle_time = 150,
+    n_eval_time = 1350
+  };
+
+  double dK[nK];    // deltas
+  double _K[nK];    // best gains
 
   int timestep;
   int twiddle_index;

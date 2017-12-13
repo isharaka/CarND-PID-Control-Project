@@ -51,8 +51,7 @@ void PID::control(double cte, double se, double angle, double& steering_angle, d
 	_cte = cte;
 	_se = se;
 
-	//std::cout << timestep << " ";
-
+	// Update error for twiddle
 	update_error(cte);
 
 	++timestep;
@@ -70,15 +69,19 @@ void PID::reset()
 
 void PID::update_error(double cte)
 {
+	// Accumulate error after settinling time has elapsed
 	if (timestep < n_settle_time)
 		error = 0;
 	else
 		error += (cte*cte);
 }
 
-
+// Twiddle is used to optimise the gains of steering angle PID controller
+// (The second PID controller for speed is not twiddled.)
 bool PID::twiddle()
 {
+	// Accumulate error until a time limit has reached or the error
+	// reaches a maximum, whichever is sooner
 	if (timestep > n_eval_time || error > (n_eval_time - n_settle_time)) {
 	    error = error / (n_eval_time - n_settle_time);
 	    
@@ -89,55 +92,59 @@ bool PID::twiddle()
 		    	<< "] K [" << K[0] << ":" << K[1] << ":"  << K[2]
 		    	<< "] dK [" << dK[0] << ":" << dK[1] << ":"  << dK[2] << "]" << std::endl;
 
-	    	int i = twiddle_index % 3;
+	    	int i = twiddle_index % 3; 				// This is to go through 3 gains
 
 	    	switch(twiddle_state)
 	    	{
 	    		case 0:
 	    			best_error = error;
-	    			memcpy(_K, K, sizeof(K));
+	    			memcpy(_K, K, sizeof(K)); 		// Remember the best gains so far
 
 	    			twiddle_state = 1;
-	    			K[i] += dK[i];
+	    			K[i] += dK[i]; 					// Try increasing gain
 	    			break;
 
 	    		case 1:
 	    			if (error < best_error) {
+	    				// Increasing gain worked! 
 	    				best_error = error;
-	    				memcpy(_K, K, sizeof(K));
+	    				memcpy(_K, K, sizeof(K)); 	// Remember the best gains so far
 
-	    				dK[i] *= 2.0;
+	    				dK[i] *= 2.0; 				// Next time try increasing even more
 
-	    				++twiddle_index;
+	    				++twiddle_index; 			// Move on to next gain parameter
 	    				i = twiddle_index % 3;
 
-	    				K[i] += dK[i];
+	    				K[i] += dK[i]; 				// Try increasing that
 	    			} else {
-	    				K[i] -= 2*dK[i];
+	    				// Increasing gain did not work!!
+	    				K[i] -= 2*dK[i];  			// Try the other way
 	    				twiddle_state = 2;
 	    			}
 	    			break;
 
 	    		case 2:
 	    			if (error < best_error) {
+	    				// The other way (decreasing gain) worked!
 	    				best_error = error;
-	    				memcpy(_K, K, sizeof(K));
+	    				memcpy(_K, K, sizeof(K)); 	// Remember the best gains so far
 
-	    				dK[i] *= 2.0;
+	    				dK[i] *= 2.0; 				// Next time try (in/de)creasing even more
 	    			} else {
-	    				K[i] += dK[i];
-	    				dK[i] *= 0.5;
+	    				// The other way (decreasing gain) did not work!!
+	    				K[i] += dK[i]; 				// Go back to where it was
+	    				dK[i] *= 0.5; 				// Next time try (in/de)creasing less
 	    			}
 
 	    			twiddle_state = 1;
-	    			++twiddle_index;
+	    			++twiddle_index; 				// Move on to next gain parameter
 	    			i = twiddle_index % 3;
 
-	    			K[i] += dK[i];
+	    			K[i] += dK[i];  				// Try increasing that
 	    			break;
 	    	}
 
-			reset();
+			reset();								// Reset PID controller state and errors
 
 			return true;
 	    } else {
