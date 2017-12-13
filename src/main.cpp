@@ -56,9 +56,9 @@ int main()
           pid.control(cte, speed-30, angle, angle_control, throttle_control);
           
           // DEBUG
-          std::cout << "cte: " << std::setw(8) << cte << " speed: " << std::setw(8) << speed 
-            << "   steer angle:" << std::setw(10) << angle << " [" << std::setw(10) << angle_control 
-            << "]   throttle: " << std::setw(10) << throttle << " [" << std::setw(10) << throttle_control << "]" << std::endl;
+          //std::cout << "cte: " << std::setw(8) << cte << " speed: " << std::setw(8) << speed 
+          //  << "   steer angle:" << std::setw(10) << angle << " [" << std::setw(10) << angle_control 
+          //  << "]   throttle: " << std::setw(10) << throttle << " [" << std::setw(10) << throttle_control << "]" << std::endl;
 
           json msgJson;
           msgJson["steering_angle"] = angle_control;
@@ -66,6 +66,11 @@ int main()
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           //std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+
+          if (pid.twiddle()) {
+            std::string msg = "42[\"reset\",{}]";
+            ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+          }
         }
       } else {
         // Manual driving

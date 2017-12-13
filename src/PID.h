@@ -20,7 +20,12 @@ public:
   */
   void control(double cte, double se, double angle, double& steering_angle, double& throttle);
 
+  bool twiddle();
+
 private:
+
+  void reset();
+  void update_error(double cte);
 
   /*
   * Coefficients
@@ -36,7 +41,15 @@ private:
   nK
   };
 
+  enum {
+    n_settle_time = 150,
+    n_eval_time = 1350
+  };
+
   double K[nK];
+
+  double dK[nK];
+  double _K[nK];
 
   /*
   * States
@@ -46,6 +59,12 @@ private:
 
   double _cte;
   double _se;
+
+  int timestep;
+  int twiddle_index;
+  int twiddle_state;
+  double error;
+  double best_error;
 };
 
 #endif /* PID_H */
